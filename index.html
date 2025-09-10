@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="中试平台应用商店 - 专业的中试验证平台，汇聚PAAS平台服务、SAAS应用软件、SDK开发工具包，助力技术验证与落地">
+    <meta name="keywords" content="中试平台,应用商店,PAAS,SAAS,容器云,Kubernetes,Docker,AI工具">
+    <meta name="author" content="中试平台团队">
+    <title>中试平台应用商店 - PAAS/SAAS/SDK</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- 网站图标 -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-cube"></i>
+                <span>中试平台应用商店</span>
+            </div>
+            <div class="nav-search">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="搜索应用模板..." id="searchInput">
+                </div>
+            </div>
+            <div class="nav-actions">
+                <button class="btn-secondary">
+                    <i class="fas fa-user"></i>
+                    登录
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要内容区域 -->
+    <main class="main-content">
+        <!-- 左侧导航栏 -->
+        <aside class="sidebar" id="sidebar">
+            <!-- 收缩后的展开按钮 -->
+            <button class="expand-btn" id="expandBtn" style="display: none;">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            
+            <div class="sidebar-header">
+                <h3><i class="fas fa-layer-group"></i> <span class="sidebar-text">应用分类</span></h3>
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-section">
+                    <h4 class="sidebar-text">主要市场</h4>
+                    <ul class="nav-list">
+                        <li>
+                            <button class="nav-item active" data-category="all">
+                                <i class="fas fa-th-large"></i>
+                                <span class="sidebar-text">全部应用</span>
+                                <span class="count sidebar-text">9</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-item" data-category="container">
+                                <i class="fas fa-cube"></i>
+                                <span class="sidebar-text">容器云市场</span>
+                                <span class="count sidebar-text">2</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-item" data-category="application">
+                                <i class="fas fa-mobile-alt"></i>
+                                <span class="sidebar-text">应用市场</span>
+                                <span class="count sidebar-text">9</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- 容器云市场细分 -->
+                <div class="nav-section sub-section" data-parent="container">
+                    <h4 class="sidebar-text">容器云服务</h4>
+                    <ul class="nav-list">
+                        <li>
+                            <button class="nav-item sub-item" data-category="kubernetes">
+                                <i class="fas fa-dharmachakra"></i>
+                                <span class="sidebar-text">Kubernetes</span>
+                                <span class="count sidebar-text">1</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-item sub-item" data-category="docker">
+                                <i class="fab fa-docker"></i>
+                                <span class="sidebar-text">Docker</span>
+                                <span class="count sidebar-text">1</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- 应用市场细分 -->
+                <div class="nav-section sub-section" data-parent="application">
+                    <h4 class="sidebar-text">应用类型</h4>
+                    <ul class="nav-list">
+                        <li>
+                            <button class="nav-item sub-item" data-category="saas">
+                                <i class="fas fa-cloud"></i>
+                                <span class="sidebar-text">SAAS应用</span>
+                                <span class="count sidebar-text">5</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-item sub-item" data-category="database">
+                                <i class="fas fa-database"></i>
+                                <span class="sidebar-text">数据库</span>
+                                <span class="count sidebar-text">2</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="nav-item sub-item" data-category="ai">
+                                <i class="fas fa-robot"></i>
+                                <span class="sidebar-text">AI工具</span>
+                                <span class="count sidebar-text">2</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- 右侧主内容区域 -->
+        <div class="content-area">
+        <!-- 横幅区域 -->
+        <section class="hero-section">
+            <div class="hero-content">
+                <h1>中试平台应用商店</h1>
+                <p>专业的中试验证平台，汇聚PAAS平台服务、SAAS应用软件、SDK开发工具包，助力技术验证与落地</p>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">800+</span>
+                        <span class="stat-label">应用总数</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">15k+</span>
+                        <span class="stat-label">活跃用户</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number">99.9%</span>
+                        <span class="stat-label">服务可用性</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+
+        <!-- 应用卡片网格 -->
+        <section class="apps-grid">
+            <div class="container">
+                <div class="grid-header">
+                    <h2>热门应用</h2>
+                    <div class="grid-controls">
+                        <button class="view-toggle active" data-view="grid">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button class="view-toggle" data-view="list">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="apps-container" id="appsContainer">
+                    <!-- 应用卡片将通过JavaScript动态生成 -->
+                </div>
+
+                <!-- 加载更多 -->
+                <div class="load-more">
+                    <button class="btn-secondary" id="loadMoreBtn">
+                        <i class="fas fa-arrow-down"></i>
+                        加载更多
+                    </button>
+                </div>
+            </div>
+        </section>
+        </div>
+    </main>
+
+    <!-- 应用详情模态框 -->
+    <div class="modal" id="appModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">应用详情</h3>
+                <button class="modal-close" id="modalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- 详情内容将通过JavaScript动态生成 -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="modalCancel">取消</button>
+                <button class="btn-primary" id="modalDeploy">
+                    <i class="fas fa-rocket"></i>
+                    立即部署
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
