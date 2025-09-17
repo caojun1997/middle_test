@@ -27,10 +27,36 @@
                 </div>
             </div>
             <div class="nav-actions">
-                <button class="btn-secondary">
-                    <i class="fas fa-user"></i>
-                    登录
-                </button>
+                <!-- 未登录状态 -->
+                <div class="login-area" id="loginArea">
+                    <button class="btn-login" onclick="showLoginModal()">
+                        <i class="fas fa-sign-in-alt"></i>
+                        登录
+                    </button>
+                </div>
+                
+                <!-- 已登录状态 -->
+                <div class="user-area" id="userArea" style="display: none;">
+                    <div class="user-info" onclick="toggleUserMenu()">
+                        <div class="user-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <div class="user-menu" id="userMenu">
+                        <div class="user-menu-item" onclick="showApiKeyModal()">
+                            <i class="fas fa-key"></i>
+                            <span>API Key管理</span>
+                        </div>
+                        <div class="user-menu-item" onclick="showUsageStats()">
+                            <i class="fas fa-chart-bar"></i>
+                            <span>使用统计</span>
+                        </div>
+                        <div class="user-menu-item" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>退出登录</span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
@@ -127,6 +153,15 @@
                     </ul>
                 </div>
             </nav>
+            
+            <!-- 我的应用区域 - 位于侧边栏底部 -->
+            <div class="my-apps-section">
+                <button class="nav-item my-apps-item" data-category="my-apps">
+                    <i class="fas fa-user-circle"></i>
+                    <span class="sidebar-text">我的应用</span>
+                    <span class="count sidebar-text" id="myAppsCount">0</span>
+                </button>
+            </div>
         </aside>
         
         <!-- 右侧主内容区域 -->
@@ -159,7 +194,7 @@
         <section class="apps-grid">
             <div class="container">
                 <div class="grid-header">
-                    <h2>热门应用</h2>
+                    <h2 id="categoryTitle">热门应用</h2>
                     <div class="grid-controls">
                         <button class="view-toggle active" data-view="grid">
                             <i class="fas fa-th"></i>
@@ -204,6 +239,129 @@
                     <i class="fas fa-rocket"></i>
                     立即部署
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 登录模态框 -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content login-modal">
+            <div class="modal-header">
+                <h3>用户登录</h3>
+                <button class="modal-close" onclick="closeLoginModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="login-form">
+                    <div class="form-group">
+                        <label for="loginPhone">手机号码</label>
+                        <input type="tel" id="loginPhone" placeholder="请输入手机号码" value="13800138000" maxlength="11">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPassword">密码</label>
+                        <input type="password" id="loginPassword" placeholder="请输入密码" value="123456" autocomplete="current-password">
+                    </div>
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="rememberMe">
+                            <span class="checkmark"></span>
+                            记住我
+                        </label>
+                        <a href="#" class="forgot-password">遇到问题？</a>
+                    </div>
+                    <button class="btn-login-submit" onclick="performLogin()">
+                        <i class="fas fa-sign-in-alt"></i>
+                        登录
+                    </button>
+                </div>
+                <div class="login-divider">
+                    <span>或</span>
+                </div>
+                <div class="cert-login">
+                    <button class="btn-cert" onclick="loginWithCertificate()">
+                        <i class="fas fa-certificate"></i>
+                        数字证书登录
+                    </button>
+                    <p class="cert-hint">使用您的数字证书进行安全登录</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Key管理模态框 -->
+    <div class="modal" id="apiKeyModal">
+        <div class="modal-content api-key-modal">
+            <div class="modal-header">
+                <h3>API Key管理</h3>
+                <button class="modal-close" onclick="closeApiKeyModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="api-key-section">
+                    <div class="section-header">
+                        <h4>当前API Key</h4>
+                        <button class="btn-primary" onclick="generateNewApiKey()">
+                            <i class="fas fa-plus"></i>
+                            生成新Key
+                        </button>
+                    </div>
+                    <div class="api-key-list" id="apiKeyList">
+                        <!-- API Key列表将通过JavaScript动态生成 -->
+                    </div>
+                </div>
+                
+                <div class="usage-stats-section">
+                    <h4>使用统计</h4>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="totalRequests">0</div>
+                                <div class="stat-label">总请求数</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="todayRequests">0</div>
+                                <div class="stat-label">今日请求</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </div>
+                            <div class="stat-content">
+                                <div class="stat-value" id="errorRate">0%</div>
+                                <div class="stat-label">错误率</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 退出登录确认对话框 -->
+    <div class="modal" id="logoutModal">
+        <div class="modal-content logout-modal">
+            <div class="modal-body">
+                <div class="logout-content">
+                    <div class="logout-icon">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </div>
+                    <p class="logout-message">确定要退出登录吗？</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeLogoutModal()">取消</button>
+                <button class="btn-danger" onclick="confirmLogout()">退出</button>
             </div>
         </div>
     </div>
