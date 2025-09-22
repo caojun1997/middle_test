@@ -366,6 +366,30 @@
         </div>
     </div>
 
+    <!-- 删除应用确认对话框 -->
+    <div class="modal" id="deleteAppModal">
+        <div class="modal-content delete-app-modal">
+            <div class="modal-body">
+                <h3 class="delete-title">确定删除应用？</h3>
+                <p class="delete-message">
+                    确定要删除 <span class="app-name" id="deleteAppName"></span> 吗？
+                </p>
+                <div class="delete-warning-list">
+                    <p>删除后：</p>
+                    <ul>
+                        <li>容器和相关数据将被永久删除</li>
+                        <li>应用将从"我的应用"列表中移除</li>
+                        <li>此操作不可恢复</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-delete-permanent" onclick="confirmDeleteApp()">删除</button>
+                <button class="btn-cancel" onclick="closeDeleteAppModal()">取消</button>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

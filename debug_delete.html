@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>删除功能调试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .debug-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .app-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            background: #f9f9f9;
+        }
+        .app-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .app-actions {
+            margin-top: 10px;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .debug-info {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-container">
+        <h1>删除功能调试页面</h1>
+        
+        <div class="debug-info">
+            <strong>调试说明：</strong>这个页面用于测试删除功能，请打开浏览器控制台查看详细日志。
+        </div>
+        
+        <div id="appList"></div>
+        
+        <div id="debugLog"></div>
+    </div>
+
+    <script>
+        // 模拟用户应用数据
+        let userApps = [
+            {
+                id: 1,
+                name: "Dify",
+                description: "开源的LLM应用开发平台",
+                status: "running",
+                containerInfo: {
+                    containerId: "dify-app-001",
+                    port: "3000",
+                    uptime: "5天 3小时"
+                }
+            },
+            {
+                id: 2,
+                name: "Core",
+                description: "高性能的云原生应用核心引擎",
+                status: "stopped",
+                containerInfo: {
+                    containerId: "core-engine-002",
+                    port: "8080",
+                    uptime: "0天 0小时"
+                }
+            }
+        ];
+
+        // 渲染应用列表
+        function renderApps() {
+            const appList = document.getElementById('appList');
+            appList.innerHTML = '';
+            
+            userApps.forEach(app => {
+                const appCard = document.createElement('div');
+                appCard.className = 'app-card';
+                
+                // 检查是否应该显示删除按钮
+                const hasContainerInfo = app.containerInfo !== undefined;
+                const isUserApp = userApps.some(userApp => userApp.id === app.id);
+                const shouldShowDeleteButton = hasContainerInfo || isUserApp;
+                
+                console.log(`应用 ${app.name} (ID: ${app.id}):`, {
+                    isUserApp,
+                    hasContainerInfo,
+                    shouldShowDeleteButton,
+                    containerInfo: app.containerInfo
+                });
+                
+                appCard.innerHTML = `
+                    <h3>${app.name}</h3>
+                    <p>${app.description}</p>
+                    <p><strong>状态:</strong> ${app.status === 'running' ? '运行中' : '已停止'}</p>
+                    <p><strong>容器ID:</strong> ${app.containerInfo.containerId}</p>
+                    <p><strong>端口:</strong> ${app.containerInfo.port}</p>
+                    <div class="app-actions">
+                        <button class="btn" onclick="startApp(${app.id})">启动</button>
+                        <button class="btn" onclick="stopApp(${app.id})">停止</button>
+                        ${shouldShowDeleteButton ? `<button class="btn btn-danger" onclick="deleteApp(${app.id})">删除</button>` : ''}
+                    </div>
+                `;
+                
+                appList.appendChild(appCard);
+            });
+        }
+
+        // 删除应用函数
+        function deleteApp(appId) {
+            console.log('deleteApp 被调用，appId:', appId);
+            
+            const app = userApps.find(a => a.id === appId);
+            console.log('查找结果:', app);
+            console.log('当前用户应用列表:', userApps.map(a => ({id: a.id, name: a.name})));
+            
+            if (!app) {
+                console.error('用户应用列表中未找到应用，ID:', appId);
+                showStatus('应用未找到', 'error');
+                return;
+            }
+            
+            if (confirm(`确定要删除 ${app.name} 吗？`)) {
+                // 从数组中移除应用
+                const appIndex = userApps.findIndex(a => a.id === appId);
+                if (appIndex !== -1) {
+                    userApps.splice(appIndex, 1);
+                    console.log('应用已从数组中移除');
+                    console.log('剩余应用:', userApps.map(a => ({id: a.id, name: a.name})));
+                    
+                    // 重新渲染
+                    renderApps();
+                    showStatus(`${app.name} 已删除`, 'success');
+                }
+            }
+        }
+
+        // 启动应用
+        function startApp(appId) {
+            const app = userApps.find(a => a.id === appId);
+            if (app) {
+                app.status = 'running';
+                renderApps();
+                showStatus(`${app.name} 已启动`, 'success');
+            }
+        }
+
+        // 停止应用
+        function stopApp(appId) {
+            const app = userApps.find(a => a.id === appId);
+            if (app) {
+                app.status = 'stopped';
+                renderApps();
+                showStatus(`${app.name} 已停止`, 'success');
+            }
+        }
+
+        // 显示状态消息
+        function showStatus(message, type) {
+            const debugLog = document.getElementById('debugLog');
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.textContent = message;
+            debugLog.appendChild(statusDiv);
+            
+            // 3秒后移除消息
+            setTimeout(() => {
+                if (statusDiv.parentNode) {
+                    statusDiv.parentNode.removeChild(statusDiv);
+                }
+            }, 3000);
+        }
+
+        // 页面加载时渲染应用列表
+        window.onload = function() {
+            console.log('页面加载完成，开始渲染应用列表');
+            renderApps();
+        };
+    </script>
+</body>
+</html>

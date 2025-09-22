@@ -448,6 +448,118 @@ body {
     box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
 }
 
+/* 删除应用确认对话框样式 - 简洁风格 */
+.delete-app-modal {
+    max-width: 500px;
+    width: 90%;
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.delete-app-modal .modal-body {
+    padding: 40px 40px 30px;
+    text-align: left;
+}
+
+.delete-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1a1a1a;
+    margin: 0 0 20px 0;
+    line-height: 1.3;
+}
+
+.delete-message {
+    font-size: 16px;
+    color: #666666;
+    line-height: 1.5;
+    margin: 0 0 15px 0;
+}
+
+.delete-message .app-name {
+    color: #1a1a1a;
+    font-weight: 500;
+}
+
+.delete-warning-list {
+    margin: 15px 0 0 0;
+}
+
+.delete-warning-list p {
+    font-size: 14px;
+    color: #666666;
+    margin: 0 0 8px 0;
+    font-weight: 500;
+}
+
+.delete-warning-list ul {
+    margin: 0;
+    padding-left: 20px;
+    list-style: none;
+}
+
+.delete-warning-list li {
+    font-size: 14px;
+    color: #666666;
+    margin-bottom: 4px;
+    position: relative;
+    line-height: 1.4;
+}
+
+.delete-warning-list li::before {
+    content: "·";
+    position: absolute;
+    left: -10px;
+    color: #666666;
+}
+
+.delete-app-modal .modal-footer {
+    padding: 20px 40px 40px;
+    display: flex;
+    gap: 12px;
+    justify-content: flex-start;
+    border-top: none;
+}
+
+/* 按钮样式 */
+.btn-cancel {
+    background: #f6f8fa;
+    color: #24292f;
+    border: 1px solid #d0d7de;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 80px;
+}
+
+.btn-cancel:hover {
+    background: #f3f4f6;
+    border-color: #bdc3c9;
+}
+
+.btn-delete-permanent {
+    background: #da3633;
+    color: white;
+    border: 1px solid #da3633;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    min-width: 140px;
+}
+
+.btn-delete-permanent:hover {
+    background: #b92c28;
+    border-color: #b92c28;
+}
+
 .btn-danger:active {
     transform: translateY(0);
     box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2);
@@ -1220,6 +1332,16 @@ body {
     transform: translateY(-1px);
 }
 
+.my-app-btn.delete {
+    background: #dc3545;
+    color: white;
+}
+
+.my-app-btn.delete:hover {
+    background: #c82333;
+    transform: translateY(-1px);
+}
+
 /* 我的应用卡片重新设计 */
 .my-app-item {
     background: #ffffff;
@@ -1684,6 +1806,40 @@ body {
     flex-direction: column;
 }
 
+/* 删除按钮样式 */
+.app-delete-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 24px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #e0e6ed;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    opacity: 0;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+}
+
+.app-card:hover .app-delete-btn {
+    opacity: 1;
+}
+
+.app-delete-btn:hover {
+    background: #e74c3c;
+    color: white;
+    border-color: #e74c3c;
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(231, 76, 60, 0.3);
+}
+
 .app-icon {
     width: 48px;
     height: 48px;
@@ -1905,13 +2061,11 @@ body {
     background: rgba(44, 62, 80, 0.8);
     z-index: 2000;
     backdrop-filter: blur(10px);
+    align-items: center;
+    justify-content: center;
 }
 
 .modal-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
     background: #ffffff;
     border: 1px solid #e9ecef;
     border-radius: 16px;

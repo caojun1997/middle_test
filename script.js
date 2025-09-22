@@ -153,7 +153,7 @@ const appsData = [
 ];
 
 // 登录状态管理
-let isLoggedIn = false;
+let isLoggedIn = true; // 修改为已登录状态，方便测试
 
 // 模拟用户数据库
 const mockUsers = [
@@ -594,6 +594,16 @@ function renderApps() {
         return matchesCategory && matchesSearch;
     });
 
+    // 更新应用状态，基于用户应用列表
+    filteredApps = filteredApps.map(app => {
+        const userApp = userApps.find(ua => ua.id === app.id);
+        if (userApp) {
+            // 如果用户已经使用了这个应用，使用用户应用的状态
+            return { ...app, status: userApp.status };
+        }
+        return app;
+    });
+
     // 限制显示数量
     const appsToShow = filteredApps.slice(0, displayedApps);
     
@@ -633,11 +643,35 @@ function createAppCard(app) {
     // 生成按钮 HTML
     const actionButtons = generateActionButtons(app);
     
-    // 检查是否是用户应用（有containerInfo属性）
-    const isUserApp = app.containerInfo !== undefined;
+    // 检查是否是用户应用
+    // 方法1：检查是否在userApps列表中
+    const isUserApp = userApps.some(userApp => userApp.id === app.id);
+    // 方法2：检查containerInfo属性（备用方案）
+    const hasContainerInfo = app.containerInfo !== undefined;
+    
+    // 只有真正的用户应用才显示删除按钮
+    // 如果app对象有containerInfo属性，说明它是用户应用
+    const shouldShowDeleteButton = hasContainerInfo || isUserApp;
+    
+    // 调试信息
+    console.log(`创建应用卡片 ${app.name} (ID: ${app.id}):`, {
+        isUserApp,
+        hasContainerInfo,
+        shouldShowDeleteButton,
+        inUserApps: userApps.map(u => u.id).includes(app.id),
+        hasContainerInfoProperty: app.containerInfo !== undefined,
+        containerInfo: app.containerInfo
+    });
+    
+    // 只有用户应用才显示删除按钮
+    const deleteButton = shouldShowDeleteButton ? `
+        <button class="app-delete-btn" onclick="deleteApp(${app.id}, event)" title="删除应用" style="opacity: 1 !important;">
+            <i class="fas fa-times"></i>
+        </button>
+    ` : '';
     
     // 如果是用户应用，添加状态指示器
-    const statusIndicator = isUserApp ? `
+    const statusIndicator = shouldShowDeleteButton ? `
         <div class="app-status-indicator ${app.status}">
             <i class="fas fa-circle"></i>
             ${app.status === 'running' ? '运行中' : '已停止'}
@@ -645,7 +679,7 @@ function createAppCard(app) {
     ` : '';
     
     // 如果是用户应用，添加容器信息
-    const containerInfo = isUserApp && app.containerInfo ? `
+    const containerInfo = shouldShowDeleteButton && app.containerInfo ? `
         <div class="app-container-info">
             <div class="container-item">
                 <i class="fas fa-server"></i>
@@ -669,6 +703,7 @@ function createAppCard(app) {
             </div>
             <div class="app-title">${app.name}</div>
             <div class="app-description">${app.description}</div>
+            ${deleteButton}
             ${statusIndicator}
         </div>
         <div class="app-card-body">
@@ -749,7 +784,7 @@ function generateActionButtons(app) {
             `;
         }
     } else {
-        // 其他应用使用"部署"按钮
+        // 其他应用（容器云应用）
         if (app.status === 'running') {
             return `
                 <button class="btn-stop" onclick="stopContainer(${app.id})">
@@ -759,6 +794,14 @@ function generateActionButtons(app) {
                 <button class="btn-restart" onclick="restartContainer(${app.id})">
                     <i class="fas fa-redo"></i>
                     重启
+                </button>
+            `;
+        } else if (app.status === 'deployed') {
+            // 已部署但未使用状态
+            return `
+                <button class="btn-use" onclick="useApp(${app.id})">
+                    <i class="fas fa-play"></i>
+                    启动使用
                 </button>
             `;
         } else {
@@ -884,7 +927,7 @@ function closeModal() {
     document.body.style.overflow = 'auto';
 }
 
-// 使用SAAS/SDK应用
+// 使用应用（适用于所有类型的应用）
 function useApp(appId) {
     const app = appsData.find(a => a.id === appId);
     if (!app) return;
@@ -896,18 +939,23 @@ function useApp(appId) {
     useBtn.disabled = true;
 
     setTimeout(() => {
-        // 更新应用状态
+        // 更新应用状态为运行中
         app.status = 'running';
         
         // 添加到我的应用列表
         addToMyApps(appId);
         
         // 显示成功消息
-        showNotification(`${app.name} 已开始使用`, 'success');
+        const appTypeText = app.type === 'saas' ? '开始使用' : '启动成功';
+        showNotification(`${app.name} ${appTypeText}，已添加到我的应用`, 'success');
         
         // 重新渲染应用列表
         renderApps();
-        closeModal();
+        
+        // 如果是在模态框中，关闭模态框
+        if (modal.style.display === 'block') {
+            closeModal();
+        }
     }, 2000);
 }
 
@@ -945,23 +993,17 @@ function deployApp(appId) {
     deployBtn.disabled = true;
 
     setTimeout(() => {
-        // 更新应用状态
-        app.status = 'running';
-        
-        // 添加到我的应用列表
-        addToMyApps(appId);
-        
-        deployBtn.innerHTML = '<i class="fas fa-play"></i> 启动';
-        deployBtn.style.background = 'linear-gradient(135deg, #27ae60, #2ecc71)';
+        // 更新应用状态为已部署但未使用
+        app.status = 'deployed';
         
         // 显示成功消息
-        showNotification(`${app.name} 部署成功！`, 'success');
+        showNotification(`${app.name} 部署成功！请启动应用开始使用`, 'success');
         
         setTimeout(() => {
             // 重新渲染应用列表以显示新的按钮状态
             renderApps();
             closeModal();
-        }, 2000);
+        }, 1000);
     }, 3000);
 }
 
@@ -1447,6 +1489,10 @@ function generateMyAppButtons(app) {
                 <i class="fas fa-eye"></i>
                 详情
             </button>
+            <button class="my-app-btn delete" onclick="deleteContainer(${app.id})">
+                <i class="fas fa-trash"></i>
+                删除容器
+            </button>
         `;
     } else {
         return `
@@ -1457,6 +1503,10 @@ function generateMyAppButtons(app) {
             <button class="my-app-btn details" onclick="showAppDetails(${app.id})">
                 <i class="fas fa-eye"></i>
                 详情
+            </button>
+            <button class="my-app-btn delete" onclick="deleteContainer(${app.id})">
+                <i class="fas fa-trash"></i>
+                删除容器
             </button>
         `;
     }
@@ -1482,17 +1532,33 @@ function addToMyApps(appId) {
         return;
     }
     
-    // 添加到用户应用列表
-    userApps.push({
+    // 添加到用户应用列表，包含容器信息
+    const userApp = {
         ...app,
         addedAt: new Date().toISOString(),
-        lastUsed: new Date().toISOString()
-    });
+        lastUsed: new Date().toISOString(),
+        containerInfo: {
+            containerId: `${app.name.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}`,
+            image: `${app.author?.toLowerCase() || 'app'}/${app.name.toLowerCase()}:${app.version}`,
+            port: getRandomPort(),
+            memory: app.requirements?.includes('GB') ? app.requirements.match(/(\d+)GB/)?.[1] + 'GB' : '1GB',
+            cpu: '1 Core',
+            uptime: '0天 0小时',
+            health: app.status === 'running' ? 'healthy' : 'stopped'
+        }
+    };
+    
+    userApps.push(userApp);
     
     // 重新渲染我的应用列表
     renderMyApps();
     
     showNotification(`${app.name} 已添加到我的应用`, 'success');
+}
+
+// 生成随机端口号
+function getRandomPort() {
+    return Math.floor(Math.random() * (9999 - 3000) + 3000).toString();
 }
 
 // 从我的应用列表中移除应用
@@ -1505,6 +1571,11 @@ function removeFromMyApps(appId) {
     
     // 重新渲染我的应用列表
     renderMyApps();
+    
+    // 如果当前显示的是我的应用页面，需要重新渲染主内容区域
+    if (currentCategory === 'my-apps') {
+        renderMyAppsContent();
+    }
     
     showNotification(`${app.name} 已从我的应用中移除`, 'info');
 }
@@ -1524,8 +1595,19 @@ function startMyApp(appId) {
         app.status = 'running';
         app.lastUsed = new Date().toISOString();
         
-        // 重新渲染我的应用列表
+        // 同步原始应用数据的状态
+        const originalApp = appsData.find(a => a.id === appId);
+        if (originalApp) {
+            originalApp.status = 'running';
+        }
+        
+        // 重新渲染我的应用列表和主应用列表
         renderMyApps();
+        if (currentCategory === 'my-apps') {
+            renderMyAppsContent();
+        } else {
+            renderApps();
+        }
         
         showNotification(`${app.name} 启动成功`, 'success');
     }, 2000);
@@ -1545,8 +1627,19 @@ function stopMyApp(appId) {
     setTimeout(() => {
         app.status = 'stopped';
         
-        // 重新渲染我的应用列表
+        // 同步原始应用数据的状态
+        const originalApp = appsData.find(a => a.id === appId);
+        if (originalApp) {
+            originalApp.status = 'stopped';
+        }
+        
+        // 重新渲染我的应用列表和主应用列表
         renderMyApps();
+        if (currentCategory === 'my-apps') {
+            renderMyAppsContent();
+        } else {
+            renderApps();
+        }
         
         showNotification(`${app.name} 已停止`, 'success');
     }, 2000);
@@ -1566,8 +1659,19 @@ function restartMyApp(appId) {
     setTimeout(() => {
         app.lastUsed = new Date().toISOString();
         
-        // 重新渲染我的应用列表
+        // 同步原始应用数据的状态
+        const originalApp = appsData.find(a => a.id === appId);
+        if (originalApp) {
+            originalApp.status = 'running';
+        }
+        
+        // 重新渲染我的应用列表和主应用列表
         renderMyApps();
+        if (currentCategory === 'my-apps') {
+            renderMyAppsContent();
+        } else {
+            renderApps();
+        }
         
         showNotification(`${app.name} 重启成功`, 'success');
     }, 2000);
@@ -1628,6 +1732,97 @@ function viewContainerConfig(appId) {
     showNotification(`正在打开 ${app.name} 的配置管理...`, 'info');
     // 这里可以集成实际的配置管理功能
     console.log(`查看 ${app.name} 的容器配置`);
+}
+
+// 删除容器
+function deleteContainer(appId) {
+    const app = userApps.find(a => a.id === appId);
+    if (!app) return;
+    
+    // 确认对话框
+    if (!confirm(`确定要删除 ${app.name} 的容器吗？\n\n删除后：\n- 容器和相关数据将被永久删除\n- 应用将从"我的应用"列表中移除\n- 此操作不可恢复`)) {
+        return;
+    }
+    
+    // 如果容器正在运行，先停止
+    if (app.status === 'running') {
+        showNotification('正在停止容器...', 'info');
+        
+        setTimeout(() => {
+            app.status = 'stopped';
+            showNotification('容器已停止，开始删除...', 'info');
+            
+            setTimeout(() => {
+                executeContainerDeletion(appId);
+            }, 1000);
+        }, 2000);
+    } else {
+        executeContainerDeletion(appId);
+    }
+}
+
+// 执行容器删除
+function executeContainerDeletion(appId) {
+    const app = userApps.find(a => a.id === appId);
+    if (!app) return;
+    
+    showNotification(`正在删除 ${app.name} 的容器...`, 'info');
+    
+    setTimeout(() => {
+        // 从我的应用列表中移除
+        const appIndex = userApps.findIndex(a => a.id === appId);
+        if (appIndex !== -1) {
+            userApps.splice(appIndex, 1);
+        }
+        
+        // 重置原始应用数据的状态
+        const originalApp = appsData.find(a => a.id === appId);
+        if (originalApp) {
+            originalApp.status = 'stopped';
+        }
+        
+        // 重新渲染我的应用列表
+        renderMyApps();
+        
+        // 如果当前显示的是我的应用页面，需要重新渲染主内容区域
+        if (currentCategory === 'my-apps') {
+            renderMyAppsContent();
+        } else {
+            // 如果当前显示的是其他分类，重新渲染应用列表
+            renderApps();
+        }
+        
+        showNotification(`${app.name} 的容器已删除，应用已从我的应用中移除`, 'success');
+    }, 3000);
+}
+
+// 删除应用（只处理用户应用）
+function deleteApp(appId, event) {
+    console.log('deleteApp 被调用，appId:', appId);
+    
+    // 阻止事件冒泡
+    if (event) {
+        event.stopPropagation();
+        event.preventDefault();
+    }
+    
+    // 从用户应用列表中找到应用
+    const app = userApps.find(a => a.id === appId);
+    
+    console.log('查找结果:', app);
+    console.log('当前用户应用列表:', userApps.map(a => ({id: a.id, name: a.name})));
+    
+    if (!app) {
+        console.error('用户应用列表中未找到应用，ID:', appId);
+        console.log('当前用户应用列表:', userApps);
+        showNotification('应用未找到', 'error');
+        return;
+    }
+    
+    console.log('找到应用，准备显示删除确认对话框:', app.name);
+    
+    // 显示自定义确认对话框
+    showDeleteAppModal(appId, app.name);
 }
 
 // 登录状态管理函数
@@ -1831,6 +2026,77 @@ function confirmLogout() {
     }, 100);
     
     console.log('退出登录完成'); // 调试信息
+}
+
+// 存储当前要删除的应用ID
+let pendingDeleteAppId = null;
+
+// 显示删除应用确认对话框
+function showDeleteAppModal(appId, appName) {
+    const modal = document.getElementById('deleteAppModal');
+    const appNameElement = document.getElementById('deleteAppName');
+    
+    if (modal && appNameElement) {
+        pendingDeleteAppId = appId;
+        appNameElement.textContent = appName;
+        modal.style.display = 'flex';
+        
+        // 防止背景滚动
+        document.body.style.overflow = 'hidden';
+        
+        // 添加点击背景关闭对话框的事件监听器
+        modal.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                closeDeleteAppModal();
+            }
+        });
+        
+        // 添加ESC键关闭对话框的事件监听器
+        const handleEscape = function(event) {
+            if (event.key === 'Escape') {
+                closeDeleteAppModal();
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+    }
+}
+
+// 关闭删除应用确认对话框
+function closeDeleteAppModal() {
+    const modal = document.getElementById('deleteAppModal');
+    if (modal) {
+        modal.style.display = 'none';
+        pendingDeleteAppId = null;
+        
+        // 恢复背景滚动
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// 确认删除应用
+function confirmDeleteApp() {
+    if (pendingDeleteAppId !== null) {
+        // 关闭对话框
+        closeDeleteAppModal();
+        
+        // 执行删除操作
+        executeDeleteApp(pendingDeleteAppId);
+    }
+}
+
+// 执行删除应用操作（原来的deleteApp函数逻辑）
+function executeDeleteApp(appId) {
+    // 从用户应用列表中找到应用
+    const app = userApps.find(a => a.id === appId);
+    
+    if (!app) {
+        showNotification('应用未找到', 'error');
+        return;
+    }
+    
+    // 使用现有的删除容器逻辑
+    deleteContainer(appId);
 }
 
 // 检查本地存储的登录状态
