@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="应用详情页面">
+    <title>应用详情 - 中试平台应用商店</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>">
+    <style>
+        /* 参考应用管理界面的详情页面样式 */
+        .detail-page {
+            min-height: 100vh;
+            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+        }
+        
+        /* 左侧导航栏 */
+        .detail-sidebar {
+            width: 200px;
+            background: white;
+            border-right: 1px solid #e1e4e8;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .sidebar-nav li {
+            margin: 0;
+        }
+        
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: #586069;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        
+        .sidebar-nav a:hover {
+            background: #f6f8fa;
+            color: #24292e;
+        }
+        
+        .sidebar-nav a.active {
+            background: #f1f8ff;
+            color: #0366d6;
+            border-right: 2px solid #0366d6;
+        }
+        
+        .sidebar-nav i {
+            width: 16px;
+            text-align: center;
+        }
+        
+        /* 主内容区域 */
+        .detail-main {
+            flex: 1;
+            margin-left: 200px;
+            padding: 20px;
+        }
+        
+        /* 顶部状态栏 */
+        .status-header {
+            background: white;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .app-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .app-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #24292e;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        
+        .status-running {
+            background: #28a745;
+        }
+        
+        .status-stopped {
+            background: #dc3545;
+        }
+        
+        .status-text {
+            color: #28a745;
+            font-weight: 500;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-btn {
+            padding: 6px 12px;
+            border: 1px solid #d1d5da;
+            background: white;
+            color: #586069;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .action-btn:hover {
+            background: #f6f8fa;
+            border-color: #0366d6;
+            color: #0366d6;
+        }
+        
+        .action-btn.danger:hover {
+            background: #ffeaea;
+            border-color: #dc3545;
+            color: #dc3545;
+        }
+        
+        /* 信息卡片网格 */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .info-card {
+            background: white;
+            border: 1px solid #e1e4e8;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background: #f6f8fa;
+            border-bottom: 1px solid #e1e4e8;
+            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #24292e;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-content {
+            padding: 16px;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f6f8fa;
+            font-size: 13px;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            color: #586069;
+            font-weight: 500;
+        }
+        
+        .info-value {
+            color: #24292e;
+            font-weight: 400;
+        }
+        
+        .info-value a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+        
+        .info-value a:hover {
+            text-decoration: underline;
+        }
+        
+        .external-link {
+            color: #0366d6;
+            font-size: 12px;
+        }
+        
+        /* 进度条 */
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #f1f3f4;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 4px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #28a745;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            font-size: 12px;
+            color: #586069;
+            margin-top: 2px;
+        }
+        
+        /* 表格样式 */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        
+        .table th,
+        .table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #f6f8fa;
+        }
+        
+        .table th {
+            background: #f6f8fa;
+            font-weight: 600;
+            color: #24292e;
+        }
+        
+        .table td {
+            color: #586069;
+        }
+        
+        .status-badge {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 500;
+        }
+        
+        .status-running {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-stopped {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .table-actions {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .table-action {
+            width: 24px;
+            height: 24px;
+            border: 1px solid #d1d5da;
+            background: white;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 10px;
+            color: #586069;
+            transition: all 0.2s;
+        }
+        
+        .table-action:hover {
+            background: #f6f8fa;
+            border-color: #0366d6;
+            color: #0366d6;
+        }
+        
+        /* 可折叠区域 */
+        .collapsible {
+            cursor: pointer;
+        }
+        
+        .collapsible i {
+            transition: transform 0.2s;
+        }
+        
+        .collapsible.expanded i {
+            transform: rotate(180deg);
+        }
+        
+        .collapsible-content {
+            display: none;
+        }
+        
+        .collapsible.expanded .collapsible-content {
+            display: block;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .detail-sidebar {
+                width: 100%;
+                height: auto;
+                position: static;
+                border-right: none;
+                border-bottom: 1px solid #e1e4e8;
+            }
+            
+            .detail-main {
+                margin-left: 0;
+                padding: 16px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .status-header {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
+            
+            .action-buttons {
+                width: 100%;
+                justify-content: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="detail-page">
+        <!-- 左侧导航栏 -->
+        <div class="detail-sidebar">
+            <ul class="sidebar-nav">
+                <li><a href="#overview" class="active" onclick="showTab('overview')">
+                    <i class="fas fa-tachometer-alt"></i>
+                    概览
+                </a></li>
+                <li><a href="#monitoring" onclick="showTab('monitoring')">
+                    <i class="fas fa-chart-line"></i>
+                    监控
+                </a></li>
+                <li><a href="#logs" onclick="showTab('logs')">
+                    <i class="fas fa-file-alt"></i>
+                    日志
+                </a></li>
+            </ul>
+        </div>
+        
+        <!-- 主内容区域 -->
+        <div class="detail-main">
+            <!-- 顶部状态栏 -->
+            <div class="status-header">
+                <div class="app-status">
+                    <span class="app-name" id="appName">应用名称</span>
+                    <div class="status-indicator">
+                        <div class="status-dot status-running" id="statusDot"></div>
+                        <span class="status-text" id="statusText">运行中</span>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="action-btn" onclick="pauseApp()">
+                        <i class="fas fa-pause"></i>
+                        暂停
+                    </button>
+                    <button class="action-btn" onclick="changeApp()">
+                        <i class="fas fa-arrow-right"></i>
+                        变更
+                    </button>
+                    <button class="action-btn" onclick="restartApp()">
+                        <i class="fas fa-redo"></i>
+                        重启
+                    </button>
+                    <button class="action-btn danger" onclick="deleteApp()">
+                        <i class="fas fa-trash"></i>
+                        删除
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 概览标签页内容 -->
+            <div id="overview-tab" class="tab-content">
+                <div class="info-grid">
+                    <!-- 基础信息卡片 -->
+                    <div class="info-card">
+                        <div class="card-header">
+                            基础信息
+                        </div>
+                        <div class="card-content">
+                            <div class="info-item">
+                                <span class="info-label">来源</span>
+                                <span class="info-value">
+                                    应用商店 | <a href="#" class="external-link">管理所有资源↗</a>
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">创建时间</span>
+                                <span class="info-value" id="createTime">2025-01-20 10:30</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">镜像名</span>
+                                <span class="info-value" id="imageName">app/example:latest</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">CPU Limit</span>
+                                <span class="info-value" id="cpuLimit">0.5 Core</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Memory Limit</span>
+                                <span class="info-value" id="memoryLimit">256 Mi</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 实时监控卡片 -->
+                    <div class="info-card">
+                        <div class="card-header">
+                            实时监控 <span style="font-weight: normal; color: #586069;">(更新时间 11:55)</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="info-item">
+                                <span class="info-label">CPU</span>
+                                <span class="info-value">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="cpuProgress" style="width: 8%"></div>
+                                    </div>
+                                    <div class="progress-text" id="cpuText">0.08%</div>
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">内存</span>
+                                <span class="info-value">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="memoryProgress" style="width: 16%"></div>
+                                    </div>
+                                    <div class="progress-text" id="memoryText">4.16%</div>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 部署模式卡片 -->
+                    <div class="info-card">
+                        <div class="card-header">
+                            部署模式
+                        </div>
+                        <div class="card-content">
+                            <div class="info-item">
+                                <span class="info-label">实例数</span>
+                                <span class="info-value">1</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 网络配置卡片 -->
+                    <div class="info-card">
+                        <div class="card-header">
+                            网络配置 <span style="font-weight: normal; color: #586069;">(1)</span>
+                        </div>
+                        <div class="card-content">
+                            <div class="info-item">
+                                <span class="info-label">内网地址</span>
+                                <span class="info-value" id="internalUrl">http://app-name.ns-example:8080</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">公网地址</span>
+                                <span class="info-value">
+                                    <span style="color: #28a745;">●可访问</span> 
+                                    <a href="#" id="publicUrl">https://example.sealosbja.site</a>
+                                    <i class="fas fa-copy" style="margin-left: 4px; cursor: pointer;" onclick="copyUrl()"></i>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 高级配置卡片 -->
+                    <div class="info-card">
+                        <div class="card-header collapsible" onclick="toggleCollapsible(this)">
+                            高级配置
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="card-content collapsible-content">
+                            <div class="info-item">
+                                <span class="info-label">启动命令</span>
+                                <span class="info-value">Not Configured</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">环境变量</span>
+                                <span class="info-value">1</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">ConfigMaps</span>
+                                <span class="info-value">0</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">存储卷</span>
+                                <span class="info-value">1</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pod 列表卡片 -->
+                    <div class="info-card">
+                        <div class="card-header">
+                            Pod 列表 <span style="font-weight: normal; color: #586069;">(1)</span>
+                        </div>
+                        <div class="card-content">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>POD 名称</th>
+                                        <th>状态</th>
+                                        <th>重启次数</th>
+                                        <th>启动时长</th>
+                                        <th>CPU</th>
+                                        <th>内存</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td id="podName">app-name-0</td>
+                                        <td><span class="status-badge status-running" id="podStatus">running</span></td>
+                                        <td id="restartCount">0</td>
+                                        <td id="uptime">6m29s</td>
+                                        <td>
+                                            <div class="progress-bar">
+                                                <div class="progress-fill" style="width: 8%"></div>
+                                            </div>
+                                            <div class="progress-text">0.08%</div>
+                                        </td>
+                                        <td>
+                                            <div class="progress-bar">
+                                                <div class="progress-fill" style="width: 16%"></div>
+                                            </div>
+                                            <div class="progress-text">4.16%</div>
+                                        </td>
+                                        <td>
+                                            <div class="table-actions">
+                                                <div class="table-action" title="查看详情">
+                                                    <i class="fas fa-file-alt"></i>
+                                                </div>
+                                                <div class="table-action" title="查看日志">
+                                                    <i class="fas fa-list"></i>
+                                                </div>
+                                                <div class="table-action" title="重启">
+                                                    <i class="fas fa-redo"></i>
+                                                </div>
+                                                <div class="table-action" title="复制">
+                                                    <i class="fas fa-copy"></i>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 监控标签页内容 -->
+            <div id="monitoring-tab" class="tab-content" style="display: none;">
+                <div class="info-card">
+                    <div class="card-header">
+                        监控数据
+                    </div>
+                    <div class="card-content">
+                        <p>监控功能开发中...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 日志标签页内容 -->
+            <div id="logs-tab" class="tab-content" style="display: none;">
+                <div class="info-card">
+                    <div class="card-header">
+                        应用日志
+                    </div>
+                    <div class="card-content">
+                        <p>日志功能开发中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 从URL参数获取应用ID
+        const urlParams = new URLSearchParams(window.location.search);
+        const appId = parseInt(urlParams.get('id'));
+        
+        // 应用数据（与主页面相同）
+        const appsData = [
+            {
+                id: 1,
+                name: "Dify",
+                description: "开源的LLM应用开发平台，轻松构建和部署AI应用",
+                category: "ai",
+                parentCategory: "application",
+                icon: "fas fa-brain",
+                tags: ["AI", "LLM", "开发平台"],
+                downloads: 89420,
+                rating: 4.9,
+                version: "0.6.12",
+                author: "Dify.AI",
+                documentation: "Dify AI应用开发平台使用指南",
+                requirements: "Python 3.10+, Docker",
+                status: "stopped"
+            },
+            {
+                id: 2,
+                name: "Core",
+                description: "高性能的云原生应用核心引擎，提供微服务架构支持",
+                category: "kubernetes",
+                parentCategory: "container",
+                icon: "fas fa-cube",
+                tags: ["微服务", "云原生", "Core"],
+                downloads: 76890,
+                rating: 4.8,
+                version: "2.1.5",
+                author: "Core Team",
+                documentation: "Core微服务引擎配置和部署指南",
+                requirements: "Kubernetes 1.24+, 最低4GB内存",
+                status: "stopped"
+            },
+            {
+                id: 3,
+                name: "n8n",
+                description: "可扩展的工作流自动化工具，支持无代码集成各种服务",
+                category: "ai",
+                parentCategory: "application",
+                icon: "fas fa-project-diagram",
+                tags: ["工作流", "自动化", "无代码"],
+                downloads: 65430,
+                rating: 4.7,
+                version: "1.19.4",
+                author: "n8n.io",
+                documentation: "n8n工作流自动化平台使用指南",
+                requirements: "Node.js 18+, 最低2GB内存",
+                status: "stopped"
+            },
+            {
+                id: 4,
+                name: "企业CRM系统",
+                description: "全功能客户关系管理系统，包含销售、市场营销和客户服务",
+                category: "saas",
+                icon: "fas fa-users",
+                tags: ["CRM", "销售管理", "客户服务"],
+                downloads: 35670,
+                rating: 4.6,
+                version: "3.2.1",
+                author: "CRM Solutions",
+                documentation: "CRM系统配置和用户管理指南",
+                requirements: "支持多租户架构",
+                status: "stopped",
+                type: "saas"
+            },
+            {
+                id: 5,
+                name: "在线协作办公",
+                description: "企业级在线办公平台，支持文档协作、视频会议和项目管理",
+                category: "saas",
+                icon: "fas fa-briefcase",
+                tags: ["办公", "协作", "会议"],
+                downloads: 42150,
+                rating: 4.5,
+                version: "1.8.5",
+                author: "Office365",
+                documentation: "在线办公平台使用和管理指南",
+                requirements: "支持SSO单点登录",
+                status: "stopped",
+                type: "saas"
+            },
+            {
+                id: 6,
+                name: "锐通慧",
+                description: "智能财务管理系统，提供AI驱动的财务分析和预测功能",
+                category: "saas",
+                parentCategory: "application",
+                icon: "fas fa-chart-line",
+                tags: ["财务", "AI分析", "智能预测"],
+                downloads: 28450,
+                rating: 4.8,
+                version: "2.3.1",
+                author: "锐通科技",
+                documentation: "锐通慧智能财务系统使用指南",
+                requirements: "支持云端部署",
+                status: "stopped",
+                type: "saas"
+            },
+            {
+                id: 7,
+                name: "锐通晓",
+                description: "企业知识管理平台，智能文档处理和知识图谱构建",
+                category: "saas",
+                parentCategory: "application",
+                icon: "fas fa-book-open",
+                tags: ["知识管理", "文档处理", "智能搜索"],
+                downloads: 31280,
+                rating: 4.7,
+                version: "1.9.2",
+                author: "锐通科技",
+                documentation: "锐通晓知识管理平台操作手册",
+                requirements: "支持大数据处理",
+                status: "stopped",
+                type: "saas"
+            },
+            {
+                id: 8,
+                name: "MySQL数据库",
+                description: "世界上最流行的开源关系型数据库管理系统",
+                category: "database",
+                parentCategory: "application",
+                icon: "fas fa-database",
+                tags: ["数据库", "MySQL", "关系型"],
+                downloads: 45420,
+                rating: 4.8,
+                version: "8.0.35",
+                author: "Oracle",
+                documentation: "MySQL数据库配置和优化指南",
+                requirements: "最低2GB内存，20GB存储空间",
+                status: "stopped"
+            },
+            {
+                id: 9,
+                name: "Redis缓存",
+                description: "高性能的内存数据结构存储，用作数据库、缓存和消息代理",
+                category: "database",
+                parentCategory: "application",
+                icon: "fas fa-memory",
+                tags: ["缓存", "内存数据库", "NoSQL"],
+                downloads: 32890,
+                rating: 4.9,
+                version: "7.2.3",
+                author: "Redis Ltd.",
+                documentation: "Redis缓存配置和优化指南",
+                requirements: "最低1GB内存",
+                status: "stopped"
+            }
+        ];
+        
+        // 用户应用数据（模拟）
+        const userApps = [
+            {
+                id: 1,
+                name: "Dify",
+                description: "开源的LLM应用开发平台，轻松构建和部署AI应用",
+                category: "ai",
+                parentCategory: "application",
+                icon: "fas fa-brain",
+                tags: ["AI", "LLM", "开发平台"],
+                downloads: 89420,
+                rating: 4.9,
+                version: "0.6.12",
+                author: "Dify.AI",
+                documentation: "Dify AI应用开发平台使用指南",
+                requirements: "Python 3.10+, Docker",
+                status: "running",
+                addedAt: "2024-01-15T10:30:00Z",
+                lastUsed: "2024-01-20T14:25:00Z",
+                containerInfo: {
+                    containerId: "dify-app-001",
+                    image: "dify/dify:0.6.12",
+                    port: "3000",
+                    memory: "2GB",
+                    cpu: "1 Core",
+                    uptime: "5天 3小时",
+                    health: "healthy"
+                }
+            }
+        ];
+        
+        // 分类名称映射
+        function getCategoryName(category) {
+            const categoryNames = {
+                'container': '容器云市场',
+                'application': '应用市场', 
+                'developer': '开发者市场',
+                'kubernetes': 'Kubernetes',
+                'docker': 'Docker',
+                'saas': 'SAAS应用',
+                'database': '数据库',
+                'sdk': 'SDK工具',
+                'ai': 'AI工具'
+            };
+            return categoryNames[category] || category;
+        }
+        
+        // 格式化数字
+        function formatNumber(num) {
+            if (num >= 1000) {
+                return (num / 1000).toFixed(1) + 'k';
+            }
+            return num.toString();
+        }
+        
+        // 加载应用详情
+        function loadAppDetail() {
+            if (!appId) {
+                document.getElementById('appName').textContent = '应用未找到';
+                return;
+            }
+            
+            // 先尝试从用户应用列表中找到
+            let app = userApps.find(a => a.id === appId);
+            
+            // 如果没找到，从应用商店数据中找
+            if (!app) {
+                app = appsData.find(a => a.id === appId);
+            }
+            
+            if (!app) {
+                document.getElementById('appName').textContent = '应用未找到';
+                return;
+            }
+            
+            // 更新页面标题
+            document.title = `${app.name} - 应用详情 - 中试平台应用商店`;
+            document.getElementById('appName').textContent = app.name;
+            
+            // 更新状态指示器
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            if (app.status === 'running') {
+                statusDot.className = 'status-dot status-running';
+                statusText.textContent = '运行中';
+                statusText.style.color = '#28a745';
+            } else {
+                statusDot.className = 'status-dot status-stopped';
+                statusText.textContent = '已停止';
+                statusText.style.color = '#dc3545';
+            }
+            
+            // 更新基础信息
+            document.getElementById('createTime').textContent = new Date().toLocaleString();
+            document.getElementById('imageName').textContent = `${app.author?.toLowerCase() || 'app'}/${app.name.toLowerCase()}:${app.version}`;
+            document.getElementById('cpuLimit').textContent = '0.5 Core';
+            document.getElementById('memoryLimit').textContent = '256 Mi';
+            
+            // 更新网络配置
+            document.getElementById('internalUrl').textContent = `http://${app.name.toLowerCase()}-${appId}.ns-example:8080`;
+            document.getElementById('publicUrl').textContent = `https://${app.name.toLowerCase()}-${appId}.sealosbja.site`;
+            
+            // 更新Pod信息
+            document.getElementById('podName').textContent = `${app.name.toLowerCase()}-${appId}-0`;
+            document.getElementById('podStatus').textContent = app.status;
+            document.getElementById('restartCount').textContent = '0';
+            document.getElementById('uptime').textContent = '6m29s';
+            
+            // 检查是否是用户应用
+            const isUserApp = app.containerInfo !== undefined;
+            
+            // 如果应用正在运行，更新监控数据
+            if (app.status === 'running') {
+                updateMonitoringData();
+            }
+        }
+        
+        // 更新监控数据
+        function updateMonitoringData() {
+            // 模拟实时监控数据
+            const cpuUsage = Math.random() * 20; // 0-20%
+            const memoryUsage = Math.random() * 30; // 0-30%
+            
+            document.getElementById('cpuProgress').style.width = cpuUsage + '%';
+            document.getElementById('cpuText').textContent = cpuUsage.toFixed(2) + '%';
+            
+            document.getElementById('memoryProgress').style.width = memoryUsage + '%';
+            document.getElementById('memoryText').textContent = memoryUsage.toFixed(2) + '%';
+        }
+        
+        // 标签页切换
+        function showTab(tabName) {
+            // 隐藏所有标签页
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.style.display = 'none';
+            });
+            
+            // 移除所有活动状态
+            document.querySelectorAll('.sidebar-nav a').forEach(link => {
+                link.classList.remove('active');
+            });
+            
+            // 显示选中的标签页
+            document.getElementById(tabName + '-tab').style.display = 'block';
+            
+            // 添加活动状态
+            event.target.classList.add('active');
+        }
+        
+        // 切换可折叠区域
+        function toggleCollapsible(element) {
+            element.classList.toggle('expanded');
+        }
+        
+        // 复制URL
+        function copyUrl() {
+            const url = document.getElementById('publicUrl').textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('URL已复制到剪贴板');
+            });
+        }
+        
+        // 应用操作函数
+        function pauseApp() {
+            alert('暂停应用功能开发中...');
+        }
+        
+        function changeApp() {
+            alert('变更应用功能开发中...');
+        }
+        
+        function restartApp() {
+            alert('重启应用功能开发中...');
+        }
+        
+        function deleteApp() {
+            if (confirm('确定要删除这个应用吗？此操作不可撤销。')) {
+                alert('删除应用功能开发中...');
+            }
+        }
+        
+        // 定时更新监控数据
+        function startMonitoring() {
+            setInterval(() => {
+                updateMonitoringData();
+            }, 5000); // 每5秒更新一次
+        }
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAppDetail();
+            startMonitoring();
+        });
+    </script>
+</body>
+</html>
